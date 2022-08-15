@@ -1,0 +1,223 @@
+<div class="container-fluid mt-3">
+  <form
+    [formGroup]="customerFilterForm"
+    (ngSubmit)="getCustomerFilterFormValue()"
+  >
+    <div class="card">
+      <div class="card-body bg-light">
+        <div class="d-flex justify-content-between">
+          <p class="fw-bolder">CUSTOMER FILTER</p>
+          <p
+            class="text-danger"
+            role="button"
+            tabindex="0"
+            (click)="resetCustomerFilterForm()"
+          >
+            Discard Filter
+          </p>
+        </div>
+        <hr />
+        <div
+          class="customer-filter-form my-4"
+          *ngFor="let form of stepForm.controls; let i = index"
+          formArrayName="stepForm"
+        >
+          <div class="d-flex align-items-center justify-content-between">
+            <h6>
+              {{ i + 1 }}.Step:
+              <span
+                >{{
+                  form.get('stepName')?.value === ''
+                    ? 'Unnamed Step'
+                    : form.get('stepName')?.value
+                }}
+              </span>
+              <i class="bi bi-pencil-fill"></i>
+            </h6>
+            <div class="actions">
+              <i class="bi bi-files" (click)="copyRow(i)"></i>
+              <i class="bi bi-trash" (click)="deleteStepFormRow(i)"></i>
+            </div>
+          </div>
+          <div class="row" [formGroupName]="i">
+            <div class="col-3">
+              <input
+                class="form-control"
+                list="eventDropdown"
+                id="eventDropdownList"
+                placeholder="Type to search..."
+                formControlName="stepName"
+                spellcheck="false"
+              />
+              <datalist id="eventDropdown">
+                <option [value]="event" *ngFor="let event of eventDropdown">
+                  {{ event }}
+                </option>
+              </datalist>
+            </div>
+            <div class="col-9">
+              <a
+                (click)="addEventAttribute($event, form)"
+                href="#"
+                class="link-primary text-decoration-none"
+                *ngIf="actionsFormControls(form).length === 0; else display"
+                >+ Add an event attribute</a
+              >
+              <ng-template #display>
+                <div
+                  formArrayName="actionsForm"
+                  *ngFor="
+                    let action of actionsFormControls(form);
+                    let j = index
+                  "
+                >
+                  <div class="row mb-2" [formGroupName]="j">
+                    <p class="col-1" *ngIf="j > 0; else dummy">AND</p>
+                    <ng-template #dummy>
+                      <p class="col-1"></p>
+                    </ng-template>
+                    <div class="col-3">
+                      <input
+                        class="form-control"
+                        list="actionDropdown"
+                        id="actionDropdownList"
+                        placeholder="Type to search..."
+                        formControlName="actionFilter"
+                        spellcheck="false"
+                      />
+                      <datalist id="actionDropdown">
+                        <option
+                          [value]="action"
+                          *ngFor="let action of actionDropdown"
+                        >
+                          {{ action }}
+                        </option>
+                      </datalist>
+                    </div>
+                    <div
+                      class="col-3"
+                      *ngIf="action.get('actionFilter')?.value !== ''"
+                    >
+                      <div class="dropdown">
+                        <button
+                          #selectBtn
+                          class="form-select dropdown-toggle text-start w-100"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          data-bs-auto-close="outside"
+                        >
+                          {{ action.get('eventConditions')?.value }}
+                        </button>
+                        <div class="dropdown-menu p-0">
+                          <ul class="nav nav-tabs">
+                            <li
+                              role="button"
+                              tabindex="0"
+                              [ngClass]="tabType === 'string' ? 'active' : ''"
+                              class="p-2 w-50 border"
+                              data-toggle="tab"
+                              (click)="setStringTab()"
+                              id="string"
+                            >
+                              String
+                            </li>
+                            <li
+                              role="button"
+                              tabindex="0"
+                              data-toggle="tab"
+                              [ngClass]="tabType === 'number' ? 'active' : ''"
+                              class="p-2 w-50 border"
+                              (click)="setNumberTab()"
+                              id="number"
+                            >
+                              Number
+                            </li>
+                          </ul>
+                          <div class="tab-content">
+                            <div
+                              [id]="menus.type"
+                              class="tab-pane"
+                              [ngClass]="menus.type === tabType ? 'active' : ''"
+                              *ngFor="let menus of conditionalMenus"
+                            >
+                              <input
+                                class="w-100 text-start"
+                                type="button"
+                                *ngFor="let menu of menus.options"
+                                [value]="menu"
+                                (click)="
+                                  setEventConditionsFormControl($event, action)
+                                "
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="col-2"
+                      *ngIf="action.get('actionFilter')?.value !== ''"
+                    >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="exampleFormControlInput1"
+                        placeholder="please enter value"
+                        formControlName="userInputVal"
+                        spellcheck="false"
+                      />
+                    </div>
+                    <div
+                      class="
+                        col-2
+                        d-flex
+                        align-items-center
+                        justify-content-between
+                      "
+                      *ngIf="action.get('eventConditions')?.value === 'in-between'"
+                    >
+                      <span class="mx-2">and</span>
+                      <input
+                        type="text"
+                        class="form-control ms-2"
+                        id="exampleFormControlInput1"
+                        placeholder="please enter value"
+                        formControlName="userInputVal"
+                        spellcheck="false"
+                      />
+                    </div>
+                    <div class="col">
+                      <button
+                        (click)="deleteRow(form, j)"
+                        class="btn btn-default"
+                      >
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  (click)="refineForm(form)"
+                  class="btn btn-secondary mt-3 offset-1"
+                >
+                  Refine more
+                </button>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="text-center">
+          <button class="btn btn-secondary m-2" (click)="addNewStepForm()">
+            + Add Funnel Step
+          </button>
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">
+      Apply Filters
+    </button>
+  </form>
+</div>

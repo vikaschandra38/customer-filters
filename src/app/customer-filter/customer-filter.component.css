@@ -1,0 +1,4 @@
+.dropdown button::after {
+  content: '';
+  display: none;
+}
